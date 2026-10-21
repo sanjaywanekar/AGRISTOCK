@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 const secret = new TextEncoder().encode(
-  process.env.NEXT_PUBLIC_JWT_SECRET!
+  process.env.JWT_SECRET!
 );
 
 export async function middleware(req: NextRequest) {
