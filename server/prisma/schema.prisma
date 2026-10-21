@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  userId       String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  role         Role
+  scanResults  ScanResults[]
+  products     Products[]
+  sales        Sales[]
+  purchases    Purchases[]
+  expenses     Expenses[]
+  createdAt    DateTime      @default(now())
+}
+
+model ScanResults {
+  scanId               String   @id @default(uuid())
+  farmerId             String
+  imageUrl             String
+  predictedLabel       String?
+  confidence           Float?
+  recommendedProductId String?
+  createdAt            DateTime @default(now())
+
+  farmer             Users?    @relation(fields: [farmerId], references: [userId])
+  recommendedProduct Products? @relation(fields: [recommendedProductId], references: [productId])
+}
+
+model Products {
+  productId       String  @id
+  industrialistId String
+  name            String
+  price           Float
+  rating          Float?
+  stockQuantity   Int
+  imageUrl        String?
+
+  // Fertilizer usage and recommendation details
+  description       String?
+  brand             String?
+  targetCondition   String?
+  targetCrops       String?
+  applicationMethod String?
+  dosage            String?
+
+  // Packaging details
+  packageSize Float?
+  packageUnit String?
+
+  industrialist Users         @relation(fields: [industrialistId], references: [userId])
+  Purchases     Purchases[]
+  Sales         Sales[]
+  scanResults   ScanResults[]
+}
+
+model Sales {
+  saleId          String   @id
+  industrialistId String
+  productId       String
+  timestamp       DateTime
+  quantity        Int
+  unitPrice       Float
+  totalAmount     Float
+
+  industrialist Users    @relation(fields: [industrialistId], references: [userId])
+  product       Products @relation(fields: [productId], references: [productId])
+}
+
+model Purchases {
+  purchaseId      String   @id
+  industrialistId String
+  productId       String
+  timestamp       DateTime
+  quantity        Int
+  unitCost        Float
+  totalCost       Float
+
+  industrialist Users    @relation(fields: [industrialistId], references: [userId])
+  product       Products @relation(fields: [productId], references: [productId])
+}
+
+model Expenses {
+  expenseId       String   @id
+  industrialistId String
+  category        String
+  amount          Float
+  timestamp       DateTime
+
+  industrialist Users @relation(fields: [industrialistId], references: [userId])
+}
+
+model SalesSummary {
+  salesSummaryId   String   @id
+  totalValue       Float
+  changePercentage Float?
+  date             DateTime
+}
+
+model PurchaseSummary {
+  purchaseSummaryId String   @id
+  totalPurchased    Float
+  changePercentage  Float?
+  date              DateTime
+}
+
+model ExpenseSummary {
+  expenseSummaryId  String              @id
+  totalExpenses     Float
+  date              DateTime
+  ExpenseByCategory ExpenseByCategory[]
+}
+
+model ExpenseByCategory {
+  expenseByCategoryId String         @id
+  expenseSummaryId    String
+  category            String
+  amount              BigInt
+  date                DateTime
+  expenseSummary      ExpenseSummary @relation(fields: [expenseSummaryId], references: [expenseSummaryId])
+}
+
+enum Role {
+  ADMIN
+  INDUSTRIALIST
+  FARMER
+}

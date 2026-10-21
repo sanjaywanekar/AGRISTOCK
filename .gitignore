@@ -1,0 +1,55 @@
+
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Python virtual environments
+.venv/
+venv/
+ml-service/venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+client/.env/
+server/.env/
+ml-service/.env/
+
+# Next.js and build files
+client/.next/
+client/out/
+client/dist/
+server/dist/
+ml-service/dist/
+build/
+coverage/
+
+# Uploaded files
+server/uploads/
+uploads/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+
+# ML training datasets and manual test images
+ml-service/data/
+ml-service/manual_test/
+
+# Unused trained models
+ml-service/model/leaf_model.keras
+ml-service/model/leaf_model_baseline.keras
+
+# Generated TypeScript build metadata
+client/tsconfig.tsbuildinfo
