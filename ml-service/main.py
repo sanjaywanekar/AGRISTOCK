@@ -4,14 +4,16 @@ import numpy as np
 from PIL import Image
 import io
 import json
-
+from pathlib import Path
 
 # ---------------------------------------------------------
 # CONFIGURATION
 # ---------------------------------------------------------
 
-MODEL_PATH = "model/leaf_model_finetuned.keras"
-CLASS_NAMES_PATH = "model/class_names.json"
+BASE_DIR = Path(__file__).resolve().parent
+
+MODEL_PATH = BASE_DIR / "model" / "leaf_model_finetuned.keras"
+CLASS_NAMES_PATH = BASE_DIR / "model" / "class_names.json"
 
 IMG_SIZE = (224, 224)
 
