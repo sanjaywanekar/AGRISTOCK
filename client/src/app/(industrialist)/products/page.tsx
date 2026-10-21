@@ -66,7 +66,7 @@ const inputClass =
   "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600";
 
 const API_BASE =
-  (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001")
+  (process.env.NEXT_PUBLIC_API_BASE_URL || "https://agristock-api-8all.onrender.com")
     .replace(/\/+$/, "");
 
 function getImageUrl(imageUrl?: string | null) {

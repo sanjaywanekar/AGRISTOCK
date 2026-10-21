@@ -8,7 +8,7 @@ import Rating from "../../(components)/Rating";
 import Image from "next/image";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://agristock-api-8all.onrender.com"
 
 const CardPopularProducts = () => {
   const { data: dashboardMetrics, isLoading, isError } =
