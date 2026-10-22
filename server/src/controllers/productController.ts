@@ -1,6 +1,7 @@
 
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { uploadToCloudinary } from "../config/cloudinary";
 
 const prisma = new PrismaClient();
 
@@ -148,9 +149,12 @@ export const createProduct = async (
     const industrialistId = req.user.userId;
 
     // Preserve the existing image-upload behavior.
-    const imageUrl = req.file
-      ? `/uploads/${req.file.filename}`
-      : null;
+    let imageUrl: string | null = null;
+
+if (req.file) {
+  const uploadedImage = await uploadToCloudinary(req.file.buffer);
+  imageUrl = uploadedImage.secure_url;
+}
 
     const product = await prisma.products.create({
       data: {
@@ -320,8 +324,9 @@ if (req.body.packageSize !== undefined) {
     }
 
     if (req.file) {
-      data.imageUrl = `/uploads/${req.file.filename}`;
-    }
+  const uploadedImage = await uploadToCloudinary(req.file.buffer);
+  data.imageUrl = uploadedImage.secure_url;
+}
 
     const product = await prisma.products.update({
       where: { productId },
