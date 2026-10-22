@@ -72,11 +72,11 @@ const imageUrl = uploadedImage.secure_url;
 });
 
     
+
 const maxAttempts = 3;
 let mlResponse;
 
 for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-  // Create a fresh multipart form for every attempt.
   const retryForm = new FormData();
 
   retryForm.append("file", req.file.buffer, {
@@ -93,9 +93,7 @@ for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       `${ML_SERVICE_URL}/predict`,
       retryForm,
       {
-        headers: {
-          ...retryForm.getHeaders(),
-        },
+        headers: { ...retryForm.getHeaders() },
         maxBodyLength: Infinity,
         timeout: 120000,
       }
@@ -103,24 +101,27 @@ for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 
     break;
   } catch (error) {
+    const status = axios.isAxiosError(error)
+      ? error.response?.status
+      : undefined;
+
     const isTransient =
       axios.isAxiosError(error) &&
       (
         !error.response ||
-        [429, 502, 503, 504].includes(error.response.status)
+        [429, 502, 503, 504].includes(status ?? 0)
       );
 
     if (!isTransient || attempt === maxAttempts) {
       throw error;
     }
 
-    const delayMs =
-  axios.isAxiosError(error) && error.response?.status === 429
-    ? attempt * 15000
-    : attempt * 5000;
+    // Give Render's free ML service time to wake up.
+    const delayMs = status === 429 ? 60000 : 10000 * attempt;
 
     console.warn(
-      `ML request failed temporarily. Retrying in ${delayMs / 1000}s...`
+      `ML service temporarily unavailable (status: ${status ?? "network error"}). ` +
+      `Retrying in ${delayMs / 1000} seconds...`
     );
 
     await new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -128,8 +129,9 @@ for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 }
 
 if (!mlResponse) {
-  throw new Error("ML service did not return a response");
+  throw new Error("ML service did not return a response after retries");
 }
+
 
 
     const {

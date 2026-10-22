@@ -140,6 +140,7 @@ export default function UploadScanPage() {
 
       )}
 
+
 {status === "loading" && (
   <p
     className="mt-3 text-sm"
@@ -147,11 +148,11 @@ export default function UploadScanPage() {
     role="status"
     aria-live="polite"
   >
-    The AI service may be waking up after inactivity.
-    Your scan can take up to a minute on the first request.
-    Please keep this page open.
+    The AI service may take up to two minutes to wake up.
+    Please keep this page open while we analyze your leaf.
   </p>
 )}
+
 
       {/* ERROR */}
       {status === "error" && (
