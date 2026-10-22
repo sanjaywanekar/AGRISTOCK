@@ -107,14 +107,17 @@ for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       axios.isAxiosError(error) &&
       (
         !error.response ||
-        [502, 503, 504].includes(error.response.status)
+        [429, 502, 503, 504].includes(error.response.status)
       );
 
     if (!isTransient || attempt === maxAttempts) {
       throw error;
     }
 
-    const delayMs = attempt * 5000;
+    const delayMs =
+  axios.isAxiosError(error) && error.response?.status === 429
+    ? attempt * 15000
+    : attempt * 5000;
 
     console.warn(
       `ML request failed temporarily. Retrying in ${delayMs / 1000}s...`
