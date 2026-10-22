@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import axios from "axios";
 import FormData from "form-data";
-import fs from "fs";
+import { uploadToCloudinary } from "../config/cloudinary";
 
 const prisma = new PrismaClient();
 
@@ -37,7 +37,12 @@ export const createScan = async (req: Request, res: Response) => {
     // SAVE IMAGE PATH
     // --------------------------------------------------
 
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const uploadedImage = await uploadToCloudinary(
+  req.file.buffer,
+  "agristock/scans"
+);
+
+const imageUrl = uploadedImage.secure_url;
 
     // --------------------------------------------------
     // CREATE INITIAL SCAN RECORD
@@ -61,14 +66,10 @@ export const createScan = async (req: Request, res: Response) => {
 
     const form = new FormData();
 
-    form.append(
-      "file",
-      fs.createReadStream(req.file.path),
-      {
-        filename: req.file.filename,
-        contentType: req.file.mimetype,
-      }
-    );
+    form.append("file", req.file.buffer, {
+  filename: req.file.originalname || "leaf-image.jpg",
+  contentType: req.file.mimetype,
+});
 
     const mlResponse = await axios.post(
       `${ML_SERVICE_URL}/predict`,
