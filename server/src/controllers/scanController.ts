@@ -71,16 +71,63 @@ const imageUrl = uploadedImage.secure_url;
   contentType: req.file.mimetype,
 });
 
-    const mlResponse = await axios.post(
+    
+const maxAttempts = 3;
+let mlResponse;
+
+for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+  // Create a fresh multipart form for every attempt.
+  const retryForm = new FormData();
+
+  retryForm.append("file", req.file.buffer, {
+    filename: req.file.originalname || "leaf-image.jpg",
+    contentType: req.file.mimetype,
+  });
+
+  try {
+    console.log(
+      `Calling ML service (attempt ${attempt}/${maxAttempts})...`
+    );
+
+    mlResponse = await axios.post(
       `${ML_SERVICE_URL}/predict`,
-      form,
+      retryForm,
       {
         headers: {
-          ...form.getHeaders(),
+          ...retryForm.getHeaders(),
         },
         maxBodyLength: Infinity,
+        timeout: 120000,
       }
     );
+
+    break;
+  } catch (error) {
+    const isTransient =
+      axios.isAxiosError(error) &&
+      (
+        !error.response ||
+        [502, 503, 504].includes(error.response.status)
+      );
+
+    if (!isTransient || attempt === maxAttempts) {
+      throw error;
+    }
+
+    const delayMs = attempt * 5000;
+
+    console.warn(
+      `ML request failed temporarily. Retrying in ${delayMs / 1000}s...`
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+}
+
+if (!mlResponse) {
+  throw new Error("ML service did not return a response");
+}
+
 
     const {
       label,

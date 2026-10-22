@@ -133,9 +133,25 @@ export default function UploadScanPage() {
           style={{ backgroundColor: C.green, color: C.white }}
         >
           <Sparkles className="w-4 h-4" />
-          {status === "loading" ? "Analyzing Leaf..." : "Analyze Leaf"}
+          {status === "loading" ? "Waking up AI / Analyzing..." : "Analyze Leaf"}
         </button>
+
+
+
       )}
+
+{status === "loading" && (
+  <p
+    className="mt-3 text-sm"
+    style={{ color: C.inkSoft }}
+    role="status"
+    aria-live="polite"
+  >
+    The AI service may be waking up after inactivity.
+    Your scan can take up to a minute on the first request.
+    Please keep this page open.
+  </p>
+)}
 
       {/* ERROR */}
       {status === "error" && (
