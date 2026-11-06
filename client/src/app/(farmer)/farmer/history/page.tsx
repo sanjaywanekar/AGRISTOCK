@@ -30,6 +30,35 @@ function getScanStatus(scan: Scan) {
   return { label: "No Matching Fertilizer", icon: XCircle, color: C.amber, bg: C.amberSoft };
 }
 
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/+$/, "");
+
+function getScanImageUrl(path?: string | null): string | null {
+  if (!path || path === "undefined" || path === "null") {
+    return null;
+  }
+
+  const cleanPath = path.trim();
+
+  // Already a valid absolute URL
+  if (/^https?:\/\//i.test(cleanPath)) {
+    return cleanPath;
+  }
+
+  // Repair malformed URLs such as https/res.cloudinary.com/...
+  const malformedUrl = cleanPath.match(/^https?\/(.+)$/i);
+
+  if (malformedUrl) {
+    return `https://${malformedUrl[1]}`;
+  }
+
+  // Relative URL: use the backend
+  if (!API_BASE) return null;
+
+  return `${API_BASE}/${cleanPath.replace(/^\/+/, "")}`;
+}
+
+
 export default function ScanHistoryPage() {
   const [scans, setScans] = useState<Scan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,9 +128,25 @@ export default function ScanHistoryPage() {
           {scans.map((scan) => {
             const status = getScanStatus(scan);
             const StatusIcon = status.icon;
+            console.log("Original image URL:", scan.imageUrl);
+            console.log("Corrected image URL:", getScanImageUrl(scan.imageUrl));   
             return (
               <div key={scan.scanId} className="rounded-2xl overflow-hidden" style={{ backgroundColor: C.bgAlt, border: `1px solid ${C.border}` }}>
-                <img src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${scan.imageUrl}`} alt="Uploaded plant" className="h-44 w-full object-cover" />
+               {getScanImageUrl(scan.imageUrl) ? (
+  <img
+    src={getScanImageUrl(scan.imageUrl)!}
+    alt="Uploaded plant"
+    className="h-44 w-full object-cover"
+    onError={(e) => {
+      console.error("Failed to load scan image:", e.currentTarget.src);
+      e.currentTarget.style.display = "none";
+    }}
+  />
+) : (
+  <div className="h-44 w-full flex items-center justify-center bg-gray-100 text-gray-500 text-sm">
+    Plant image unavailable
+  </div>
+)}
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-xs" style={{ color: C.inkFaint }}>{new Date(scan.createdAt).toLocaleString()}</p>
